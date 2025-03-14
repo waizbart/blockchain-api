@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+web3
+pydantic
+python-multipart
+python-dotenv
+ipfshttpclient

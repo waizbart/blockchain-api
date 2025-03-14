@@ -1,25 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract AnonymousReports {
-    struct Report {
-        string reportHash;  
-        uint256 timestamp;
+contract DenunciaAnonima {
+    struct Denuncia {
+        string hashDados;
+        uint256 dataHora;
+        string categoria;
     }
 
-    Report[] public reports;
+    Denuncia[] public denuncias;
 
-    event NewReport(uint256 reportId, string reportHash, uint256 timestamp);
-
-    function addReport(string memory _reportHash) public {
-        reports.push(Report({
-            reportHash: _reportHash,
-            timestamp: block.timestamp
-        }));
-        emit NewReport(reports.length - 1, _reportHash, block.timestamp);
+    function registrarDenuncia(string memory _hashDados, string memory _categoria) public {
+        denuncias.push(Denuncia(_hashDados, block.timestamp, _categoria));
     }
 
-    function getReportCount() public view returns (uint256) {
-        return reports.length;
+    function obterTotalDenuncias() public view returns(uint256) {
+        return denuncias.length;
+    }
+
+    function obterDenuncia(uint256 id) public view returns(Denuncia memory) {
+        return denuncias[id];
     }
 }

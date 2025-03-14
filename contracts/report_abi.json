@@ -1,45 +1,72 @@
 [
 	{
-		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "reportId",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "reportHash",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "timestamp",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "NewReport",
-		"type": "event"
+		"name": "denuncias",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "hashDados",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "dataHora",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "categoria",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [
 			{
-				"internalType": "string",
-				"name": "_reportHash",
-				"type": "string"
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
 			}
 		],
-		"name": "addReport",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"name": "obterDenuncia",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "hashDados",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "dataHora",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "categoria",
+						"type": "string"
+					}
+				],
+				"internalType": "struct DenunciaAnonima.Denuncia",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "getReportCount",
+		"name": "obterTotalDenuncias",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -53,25 +80,19 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "reports",
-		"outputs": [
-			{
 				"internalType": "string",
-				"name": "reportHash",
+				"name": "_hashDados",
 				"type": "string"
 			},
 			{
-				"internalType": "uint256",
-				"name": "timestamp",
-				"type": "uint256"
+				"internalType": "string",
+				"name": "_categoria",
+				"type": "string"
 			}
 		],
-		"stateMutability": "view",
+		"name": "registrarDenuncia",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]
