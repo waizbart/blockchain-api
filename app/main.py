@@ -1,6 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.denuncia import router as denuncia_router
+from app.controllers.denuncia import router as denuncia_router
+from app.controllers.police import router as police_router
+from app.db.config import Base, engine
+from app.db.seed import seed_police_user
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Denúncias Anônimas - Backend Blockchain",
@@ -17,6 +22,9 @@ app.add_middleware(
 )
 
 app.include_router(denuncia_router, prefix="/api", tags=["Denúncias"])
+app.include_router(police_router, prefix="/api", tags=["Acesso policial"])
+
+seed_police_user()
 
 if __name__ == "__main__":
     import uvicorn
