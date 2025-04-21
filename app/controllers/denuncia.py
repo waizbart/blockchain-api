@@ -16,6 +16,13 @@ def get_db():
     finally:
         db.close()
 
+@router.get("/")
+def hello_world():
+    """
+    Returns a simple Hello, World! message.
+    """
+    return {"message": "Hello, World!"}
+
 @router.post("/denuncia")
 def criar_denuncia(denuncia: Denuncia, db: Session = Depends(get_db)):
     """
@@ -24,21 +31,23 @@ def criar_denuncia(denuncia: Denuncia, db: Session = Depends(get_db)):
     2. Envia o hash na blockchain via registrarDenuncia().
     """
     try:
-        dados_concatenados = f"{denuncia.descricao}{denuncia.categoria}"
+        dados_concatenados = f"{denuncia.descricao}{denuncia.categoria}{denuncia.datetime}"
         if denuncia.latitude and denuncia.longitude:
             dados_concatenados += f"{denuncia.latitude}{denuncia.longitude}"
 
         hash_dados = hashlib.sha256(dados_concatenados.encode()).hexdigest()
 
         tx_hash = registrar_denuncia(hash_dados, denuncia.categoria)
+
+        print(f"denuncia {denuncia.datetime} registrada com sucesso na blockchain. tx_hash: {tx_hash}")
         
         nova_denuncia = DenunciaModel(
             descricao=denuncia.descricao,
             categoria=denuncia.categoria,
             latitude=denuncia.latitude, 
             longitude=denuncia.longitude,
-            hash_dados=hash_dados 
-            
+            hash_dados=hash_dados,
+            datetime=denuncia.datetime
         )
         db.add(nova_denuncia)
         db.commit()
@@ -77,12 +86,14 @@ def listar_denuncias(
             local_denuncia = db.query(DenunciaModel).filter_by(hash_dados=data[0]).first()
 
             if local_denuncia:
+                print(f"Denúncia encontrada: {local_denuncia.datetime}")
                 results.append({
                     "id": local_denuncia.id,
                     "descricao": local_denuncia.descricao,
                     "categoria": local_denuncia.categoria,
                     "latitude": getattr(local_denuncia, "latitude", None),
                     "longitude": getattr(local_denuncia, "longitude", None),
+                    "datetime": local_denuncia.datetime,
                 })
         return results
     except Exception as e:

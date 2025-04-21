@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.controllers.denuncia import router as denuncia_router
 from app.controllers.police import router as police_router
 from app.db.config import Base, engine
+from sqlalchemy import inspect
 from app.db.seed import seed_police_user
 
 Base.metadata.create_all(bind=engine)
@@ -28,4 +29,4 @@ seed_police_user()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="127.0.0.1", port=3334, reload=True)

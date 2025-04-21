@@ -6,6 +6,7 @@ class Denuncia(Base):
     id = Column(Integer, primary_key=True, index=True)
     descricao = Column(Text, nullable=False)
     categoria = Column(String, nullable=False)
+    datetime = Column(String, nullable=True)
     latitude = Column(Float)
     longitude = Column(Float)
     hash_dados = Column(Text, nullable=False)
