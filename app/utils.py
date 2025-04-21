@@ -1,4 +1,3 @@
-# app/utils.py
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from jose import jwt
