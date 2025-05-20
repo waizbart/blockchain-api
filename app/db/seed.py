@@ -4,15 +4,11 @@ from app.utils import get_password_hash
 import secrets
 import string
 
-def random_password(size: int = 8) -> str:
-    caracteres = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(secrets.choice(caracteres) for _ in range(size))
-
 def seed_police_user():
     db = SessionLocal()
     try:
         if not db.query(Police).filter(Police.username == "admin").first():
-            password = random_password()
+            password = 'teste123'
             admin = Police(
                 username="admin",
                 hashed_password=get_password_hash(password)

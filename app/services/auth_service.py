@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 
-from jose import jwt
 from sqlalchemy.orm import Session
 
 from app.repositories.police import PoliceRepository
 from app.controllers.police import Police
+from app.services.token_service import TokenService  # Import TokenService
 
 
 class AuthService:
@@ -13,11 +12,15 @@ class AuthService:
     Service for handling authentication and authorization.
     """
 
-    def __init__(self, db: Session, secret_key: str, algorithm: str = "HS256", token_expire_minutes: int = 30):
+    def __init__(
+        self,
+        db: Session,
+        secret_key: str,
+        algorithm: str = "HS256",
+        token_expire_minutes: int = 30
+    ):
         self.repository = PoliceRepository(db)
-        self.secret_key = secret_key
-        self.algorithm = algorithm
-        self.token_expire_minutes = token_expire_minutes
+        self.token_service = TokenService(secret_key, algorithm, token_expire_minutes)
 
     def authenticate_user(self, username: str, password: str) -> Optional[Police]:
         """
@@ -27,24 +30,15 @@ class AuthService:
 
     def create_access_token(self, data: Dict[str, Any]) -> str:
         """
-        Create a JWT access token.
+        Create a JWT access token using TokenService.
         """
-        to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=self.token_expire_minutes)
-        to_encode.update({"exp": expire})
-
-        return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+        return self.token_service.create_access_token(data)
 
     def decode_token(self, token: str) -> Optional[Dict[str, Any]]:
         """
-        Decode and verify a JWT token.
+        Decode and verify a JWT token using TokenService.
         """
-        try:
-            payload = jwt.decode(token, self.secret_key,
-                                 algorithms=[self.algorithm])
-            return payload
-        except jwt.JWTError:
-            return None
+        return self.token_service.decode_token(token)
 
     def get_current_user(self, token: str) -> Optional[Police]:
         """
