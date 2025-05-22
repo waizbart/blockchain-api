@@ -1,108 +1,118 @@
-# Blockchain API - Anonymous Reports
+# API Blockchain - Denúncias Anônimas
 
-A blockchain-based API for anonymous reporting, built with FastAPI and Polygon blockchain.
+Uma API baseada em blockchain para denúncias anônimas, construída com FastAPI e a blockchain Polygon.
 
-## Project Structure
+Tudo o que foi proposto pelo grupo no quadro gira foi implementado com sucesso.
+
+-----
+
+## Estrutura do Projeto
 
 ```
 app/
-├── adapters/          # Adapters for external services
-├── blockchain/        # Blockchain interaction code
-├── controllers/       # API endpoints
-├── core/              # Core configuration
-├── db/                # Database configuration and seed data
-├── factories/         # Object creation factories
-├── models/            # Database models
-├── repositories/      # Data access layer
-├── schemas/           # DTOs (Data Transfer Objects)
-├── services/          # Business logic layer
-├── strategies/        # Strategy implementations
-└── utils.py           # Utility functions
+├── adapters/         # Adaptadores para serviços externos
+├── blockchain/       # Código de interação com a blockchain
+├── controllers/      # Endpoints da API
+├── core/             # Configuração principal
+├── db/               # Configuração do banco de dados e dados iniciais (seed)
+├── factories/        # Fábricas para criação de objetos
+├── models/           # Modelos do banco de dados
+├── repositories/     # Camada de acesso a dados
+├── schemas/          # DTOs (Objetos de Transferência de Dados)
+├── services/         # Camada de lógica de negócios
+├── strategies/       # Implementações de estratégias
+└── utils.py          # Funções utilitárias
 ```
 
-## Design Patterns
+-----
 
-### Repository Pattern
+## Padrões de Projeto
 
-The Repository pattern creates an abstraction layer between the data access and the business logic layers of an application. This helps with:
+### Padrão Repository (Repositório)
 
-- Centralizing data access logic
-- Making the application more maintainable and testable
-- Enabling easy switching between different data sources
+O padrão Repository cria uma camada de abstração entre o acesso a dados e as camadas de lógica de negócios de uma aplicação. Isso ajuda com:
 
-Example: `app/repositories/denuncia.py`
+  - Centralizar a lógica de acesso a dados
+  - Tornar a aplicação mais fácil de manter e testar
+  - Permitir a troca fácil entre diferentes fontes de dados
 
-### Service Layer Pattern
+Exemplo: `app/repositories/denuncia.py`
 
-The Service Layer pattern provides a set of application services that define the boundary of the application and its set of available operations from the perspective of client layers. This helps with:
+### Padrão Service Layer (Camada de Serviço)
 
-- Ensuring business logic is not spread across controllers
-- Abstracting complex operations
-- Enabling easier testing and maintenance
+O padrão Service Layer fornece um conjunto de serviços da aplicação que definem o limite da aplicação e seu conjunto de operações disponíveis sob a perspectiva das camadas cliente. Isso ajuda com:
 
-Example: `app/services/denuncia_service.py`
+  - Garantir que a lógica de negócios não seja espalhada pelos controllers
+  - Abstrair operações complexas
+  - Facilitar testes e manutenção
 
-### Factory Pattern
+Exemplo: `app/services/denuncia_service.py`
 
-The Factory pattern provides an interface for creating objects without specifying their concrete classes. This helps with:
+### Padrão Factory (Fábrica)
 
-- Encapsulating object creation logic
-- Making it easier to change implementations
-- Supporting the Open/Closed Principle
+O padrão Factory fornece uma interface para criar objetos sem especificar suas classes concretas. Isso ajuda com:
 
-Example: `app/factories/blockchain_factory.py`
+  - Encapsular a lógica de criação de objetos
+  - Facilitar a alteração de implementações
+  - Suportar o Princípio Aberto/Fechado (Open/Closed Principle)
 
-### Strategy Pattern
+Exemplo: `app/factories/blockchain_factory.py`
 
-The Strategy pattern defines a family of algorithms, encapsulates each one, and makes them interchangeable. This helps with:
+### Padrão Strategy (Estratégia)
 
-- Supporting multiple implementations of the same interface
-- Making algorithms independent from clients that use them
-- Adding new strategies without modifying existing code
+O padrão Strategy define uma família de algoritmos, encapsula cada um deles e os torna intercambiáveis. Isso ajuda com:
 
-Example: `app/strategies/blockchain_provider.py` and implementations
+  - Suportar múltiplas implementações da mesma interface
+  - Tornar os algoritmos independentes dos clientes que os utilizam
+  - Adicionar novas estratégias sem modificar o código existente
 
-### Adapter Pattern
+Exemplo: `app/strategies/blockchain_provider.py` e implementações
 
-The Adapter pattern allows objects with incompatible interfaces to collaborate. This helps with:
+### Padrão Adapter (Adaptador)
 
-- Integrating third-party libraries with different interfaces
-- Making legacy code work with modern systems
-- Isolating client code from implementation details
+O padrão Adapter permite que objetos com interfaces incompatíveis colaborem. Isso helps com:
 
-Example: `app/adapters/ipfs_adapter.py`
+  - Integrar bibliotecas de terceiros com interfaces diferentes
+  - Fazer código legado funcionar com sistemas modernos
+  - Isolar o código cliente dos detalhes de implementação
 
-### Dependency Injection
+Exemplo: `app/adapters/ipfs_adapter.py`
 
-Using FastAPI's dependency injection system to inject repositories and services into controllers. This helps with:
+### Injeção de Dependência
 
-- Loose coupling between components
-- Easier testing through mocking
-- Cleaner code
+Uso do sistema de injeção de dependência do FastAPI para injetar repositórios e serviços nos controllers. Isso ajuda com:
 
-Example: Controllers using `Depends(get_auth_service)`
+  - Baixo acoplamento entre componentes
+  - Testes mais fáceis através de mocking
+  - Código mais limpo
 
-### DTOs (Data Transfer Objects)
+Exemplo: Controllers usando `Depends(get_auth_service)`
 
-Using Pydantic models to validate and transform data between the API and the application. This helps with:
+### DTOs (Objetos de Transferência de Dados)
 
-- Input validation
-- Separation of API models from domain models
-- Clearer API documentation
+Uso de modelos Pydantic para validar e transformar dados entre a API e a aplicação. Isso ajuda com:
 
-Example: `app/schemas/denuncia.py`
+  - Validação de entrada
+  - Separação dos modelos da API dos modelos de domínio
+  - Documentação da API mais clara
 
-## Getting Started
+Exemplo: `app/schemas/denuncia.py`
 
-1. Clone the repository
-2. Create a virtual environment: `python -m venv .venv`
-3. Activate the virtual environment:
-   - Windows: `.venv\Scripts\activate`
-   - Linux/Mac: `source .venv/bin/activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. Configure the `.env` file with your Polygon credentials
-6. Run the application: `uvicorn app.main:app --reload`
+-----
 
-## API Documentation
+## Começando
 
-Once running, access the Swagger UI documentation at: <http://localhost:8000/docs>
+1.  Clone o repositório
+2.  Crie um ambiente virtual: `python -m venv .venv`
+3.  Ative o ambiente virtual:
+      * Windows: `.venv\Scripts\activate`
+      * Linux/Mac: `source .venv/bin/activate`
+4.  Instale as dependências: `pip install -r requirements.txt`
+5.  Configure o arquivo `.env` com suas credenciais da Polygon
+6.  Execute a aplicação: `uvicorn app.main:app --reload`
+
+-----
+
+## Documentação da API
+
+Com a aplicação em execução, acesse a documentação Swagger UI em: [http://localhost:8000/docs](https://www.google.com/search?q=http://localhost:8000/docs)
