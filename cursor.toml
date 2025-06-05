@@ -1,0 +1,43 @@
+[project]
+name = "api-denuncias-blockchain"
+description = "API Flask para registro de denúncias anônimas utilizando blockchain"
+language = "pt-BR"
+
+[rules]
+# Estrutura e Organização
+use_blueprints = true
+use_application_factory = true
+modular_structure = true
+separate_models_services_routes = true
+
+# Padrões de Design
+implement_dao_pattern = true
+implement_service_layer = true
+use_singleton_for_blockchain_connection = true
+apply_dependency_injection = true
+
+# Boas Práticas de Desenvolvimento
+follow_pep8 = true
+use_type_hints = true
+implement_logging = true
+handle_exceptions_gracefully = true
+write_unit_tests = true
+use_env_variables_for_config = true
+
+# Segurança e Anonimato
+ensure_data_anonymity = true
+encrypt_sensitive_data = true
+do_not_store_user_identifiers = true
+validate_input_data = true
+
+# Integração com Blockchain
+abstract_blockchain_interactions = true
+handle_blockchain_errors = true
+ensure_transaction_integrity = true
+log_blockchain_transactions = true
+
+# Documentação e Manutenção
+generate_api_docs = true
+use_swagger_or_redoc = true
+write_docstrings = true
+maintain_changelog = true

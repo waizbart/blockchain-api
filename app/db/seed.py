@@ -1,8 +1,6 @@
 from app.db.config import SessionLocal
 from app.models.police import Police
-from app.utils import get_password_hash
-import secrets
-import string
+from app.utils.jwt import get_password_hash
 
 def seed_police_user():
     db = SessionLocal()

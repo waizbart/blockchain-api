@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from app.db.config import SessionLocal
 from app.schemas.denuncia import Denuncia
 from app.controllers.police import get_current_police, Police
 from sqlalchemy.orm import Session
 from app.services.denuncia_service import DenunciaService
+from app.utils.rate_limiter import limiter
 
 router = APIRouter()
 
@@ -25,7 +26,8 @@ def hello_world():
 
 
 @router.post("/denuncia")
-def criar_denuncia(denuncia: Denuncia, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def criar_denuncia(request: Request, denuncia: Denuncia, db: Session = Depends(get_db)):
     """
     Registra uma nova denúncia:
     1. Gera um hash dos dados.
@@ -45,7 +47,7 @@ def criar_denuncia(denuncia: Denuncia, db: Session = Depends(get_db)):
 
 @router.get("/denuncias")
 def listar_denuncias(
-    current_police: Police = Depends(get_current_police),
+    _: Police = Depends(get_current_police),
     db: Session = Depends(get_db)
 ):
     """

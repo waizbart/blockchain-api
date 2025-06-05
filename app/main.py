@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.controllers.denuncia import router as denuncia_router
 from app.controllers.police import router as police_router
 from app.db.config import Base, engine
-from sqlalchemy import inspect
 from app.db.seed import seed_police_user
+from app.utils.rate_limiter import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 Base.metadata.create_all(bind=engine)
 
@@ -13,6 +15,8 @@ app = FastAPI(
     version="1.0.0",
     description="API para registro e listagem de denúncias anonimas na Blockchain (Polygon)."
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,4 +33,4 @@ seed_police_user()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="127.0.0.1", port=3334, reload=True)
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
