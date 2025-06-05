@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from app.core.config import settings
 from app.services.auth_service import AuthService
+from app.services.blockchain_service import BlockchainService
 
 router = APIRouter()
 
@@ -23,6 +24,10 @@ def get_db():
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     return AuthService(db, settings.SECRET_KEY)
+
+
+def get_blockchain_service() -> BlockchainService:
+    return BlockchainService()
 
 
 async def get_current_police(
@@ -56,3 +61,30 @@ def login(
     access_token = auth_service.create_access_token(
         data={"sub": police.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/status")
+def get_system_status(
+    _: Police = Depends(get_current_police),
+    blockchain_service: BlockchainService = Depends(get_blockchain_service)
+):
+    """
+    Returns the status of the blockchain account, including balance and
+    estimated number of remaining reports.
+    """
+    try:
+        balance = blockchain_service.get_balance()
+        cost_per_report = blockchain_service.estimate_report_cost()
+
+        if cost_per_report > 0:
+            remaining_reports = int(balance / cost_per_report)
+        else:
+            remaining_reports = float('inf')  # Avoid division by zero
+
+        return {
+            "account_balance_matic": balance,
+            "estimated_cost_per_report_matic": cost_per_report,
+            "estimated_remaining_reports": remaining_reports
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

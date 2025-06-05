@@ -59,3 +59,15 @@ class BlockchainService:
         Returns a list of tuples (id, hashDados, dataHora, categoria).
         """
         return self.provider.get_all_reports()
+
+    def get_balance(self) -> float:
+        """
+        Get the balance from the provider.
+        """
+        return self.provider.get_balance()
+
+    def estimate_report_cost(self) -> float:
+        """
+        Estimate the report cost from the provider.
+        """
+        return self.provider.estimate_report_cost()

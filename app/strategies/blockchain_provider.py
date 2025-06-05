@@ -54,3 +54,23 @@ class BlockchainProvider(ABC):
             A list of tuples (id, hash_data, timestamp, category).
         """
         pass
+
+    @abstractmethod
+    def get_balance(self) -> float:
+        """
+        Get the balance of the blockchain account.
+
+        Returns:
+            The balance in the native currency (e.g., ETH, MATIC).
+        """
+        pass
+
+    @abstractmethod
+    def estimate_report_cost(self) -> float:
+        """
+        Estimate the cost of a single report registration transaction.
+
+        Returns:
+            The estimated cost in the native currency.
+        """
+        pass

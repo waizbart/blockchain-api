@@ -58,3 +58,33 @@ class PolygonProvider(BlockchainProvider):
             reports.append((i, data[0], data[1], data[2]))
 
         return reports
+
+    def get_balance(self) -> float:
+        """
+        Get the balance of the configured public address.
+        """
+        balance_wei = w3.eth.get_balance(settings.PUBLIC_ADDRESS)
+        balance_matic = w3.from_wei(balance_wei, 'ether')
+        return float(balance_matic)
+
+    def estimate_report_cost(self) -> float:
+        """
+        Estimate the cost of a single 'registrarDenuncia' transaction.
+        """
+        try:
+            dummy_hash = "0x" + "0" * 64
+            dummy_category = "estimativa"
+            
+            gas_estimate = contract.functions.registrarDenuncia(dummy_hash, dummy_category).estimate_gas({
+                'from': settings.PUBLIC_ADDRESS
+            })
+            
+            gas_price = w3.eth.gas_price
+            
+            cost_wei = gas_estimate * gas_price
+            cost_matic = w3.from_wei(cost_wei, 'ether')
+            
+            return float(cost_matic)
+        except Exception as e:
+            print(f"Error estimating gas: {e}")
+            return 0.01
