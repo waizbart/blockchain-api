@@ -51,7 +51,7 @@ class PolygonProvider(BlockchainProvider):
 
         print(f"Total de denuncias: {total}")
 
-        START = 20
+        START = 0
 
         for i in range(START, total):
             data = self.get_report(i)

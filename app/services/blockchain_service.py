@@ -28,7 +28,10 @@ class BlockchainService:
         Generate a hash from denuncia data.
         """
         dados_concatenados = f"{denuncia_data.get('descricao')}{denuncia_data.get('categoria')}{denuncia_data.get('datetime')}"
-        if denuncia_data.get('latitude') and denuncia_data.get('longitude'):
+        if (
+            denuncia_data.get('latitude') is not None
+            and denuncia_data.get('longitude') is not None
+        ):
             dados_concatenados += f"{denuncia_data.get('latitude')}{denuncia_data.get('longitude')}"
 
         return hashlib.sha256(dados_concatenados.encode()).hexdigest()
