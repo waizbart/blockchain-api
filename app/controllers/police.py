@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.schemas.police import PoliceLogin, Token
 from app.models.police import Police
 from app.db.config import SessionLocal
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from app.core.config import settings
 from app.services.auth_service import AuthService
@@ -11,7 +11,7 @@ from app.services.blockchain_service import BlockchainService
 
 router = APIRouter()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/police/login")
+security = HTTPBearer()
 
 
 def get_db():
@@ -31,7 +31,7 @@ def get_blockchain_service() -> BlockchainService:
 
 
 async def get_current_police(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     auth_service: AuthService = Depends(get_auth_service)
 ):
     credentials_exception = HTTPException(
@@ -40,7 +40,7 @@ async def get_current_police(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    police = auth_service.get_current_user(token)
+    police = auth_service.get_current_user(credentials.credentials)
     if police is None:
         raise credentials_exception
 
@@ -87,4 +87,5 @@ def get_system_status(
             "estimated_remaining_reports": remaining_reports
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"An error occurred: {str(e)}")
