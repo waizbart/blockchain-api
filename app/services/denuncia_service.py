@@ -5,10 +5,8 @@ from sqlalchemy.orm import Session
 from app.repositories.denuncia import DenunciaRepository
 from app.services.blockchain_service import BlockchainService
 from app.schemas.denuncia import Denuncia as DenunciaSchema
-from app.models.denuncia import Denuncia as DenunciaModel
 from app.adapters.storage_adapter import StorageAdapter
 from app.adapters.ipfs_adapter import IPFSAdapter
-
 
 class DenunciaService:
     """
