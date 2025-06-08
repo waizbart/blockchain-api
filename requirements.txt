@@ -11,3 +11,4 @@ python-jose
 python-dotenv
 slowapi
 redis
+pydantic[email]
