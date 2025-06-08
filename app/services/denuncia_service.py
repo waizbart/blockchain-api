@@ -103,7 +103,8 @@ class DenunciaService:
                 "longitude": denuncia.longitude,
                 "datetime": denuncia.datetime,
                 "status": denuncia.status.value,
-                "hash_dados": denuncia.hash_dados
+                "hash_dados": denuncia.hash_dados,
+                "user_uuid": denuncia.user_uuid
             }
         return None
 
@@ -111,16 +112,18 @@ class DenunciaService:
         self,
         status: Optional[StatusDenuncia] = None,
         categoria: Optional[str] = None,
-        blockchain_offset: Optional[int] = 0
+        blockchain_offset: Optional[int] = 0,
+        user_uuid: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Get all denuncias from blockchain and enrich with database data.
+        Supports filtering by status, categoria, and user_uuid.
         """
         blockchain_denuncias = self.blockchain_service.get_all_denuncias(
             blockchain_offset)
 
         results = []
-        for denuncia_id, hash_dados, data_hora, categoria in blockchain_denuncias:
+        for denuncia_id, hash_dados, data_hora, categoria_blockchain in blockchain_denuncias:
             local_denuncia = self.repository.get_by_hash(hash_dados)
 
             if local_denuncia:
@@ -128,6 +131,9 @@ class DenunciaService:
                     continue
 
                 if categoria and local_denuncia.categoria.lower() != categoria.lower():
+                    continue
+
+                if user_uuid and local_denuncia.user_uuid != user_uuid:
                     continue
 
                 results.append({
@@ -139,6 +145,7 @@ class DenunciaService:
                     "datetime": local_denuncia.datetime,
                     "status": local_denuncia.status.value,
                     "hash_dados": local_denuncia.hash_dados,
+                    "user_uuid": getattr(local_denuncia, "user_uuid", None),
                     "blockchain_id": denuncia_id,
                     "blockchain_timestamp": data_hora
                 })
@@ -157,7 +164,6 @@ class DenunciaService:
             hash_dados, data_hora, categoria = self.blockchain_service.get_denuncia(
                 denuncia_id)
 
-            # Find in database
             local_denuncia = self.repository.get_by_hash(hash_dados)
 
             if local_denuncia:
@@ -170,11 +176,11 @@ class DenunciaService:
                     "datetime": local_denuncia.datetime,
                     "status": local_denuncia.status.value,
                     "hash_dados": local_denuncia.hash_dados,
+                    "user_uuid": getattr(local_denuncia, "user_uuid", None),
                     "blockchain_id": denuncia_id,
                     "blockchain_timestamp": data_hora
                 }
             else:
-                # Return only blockchain data if no database record found
                 return {
                     "blockchain_id": denuncia_id,
                     "hash_dados": hash_dados,

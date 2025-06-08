@@ -24,7 +24,7 @@ class BlockchainService:
     @staticmethod
     def generate_hash(denuncia_data: Dict[str, Any]) -> str:
         """
-        Generate a hash from denuncia data.
+        Generate a hash from denuncia data, including optional user_uuid.
         """
         dados_concatenados = f"{denuncia_data.get('descricao')}{denuncia_data.get('categoria')}{denuncia_data.get('datetime')}"
         if (
@@ -32,6 +32,9 @@ class BlockchainService:
             and denuncia_data.get('longitude') is not None
         ):
             dados_concatenados += f"{denuncia_data.get('latitude')}{denuncia_data.get('longitude')}"
+
+        if denuncia_data.get('user_uuid') is not None:
+            dados_concatenados += f"{denuncia_data.get('user_uuid')}"
 
         return hashlib.sha256(dados_concatenados.encode()).hexdigest()
 

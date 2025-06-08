@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.db.config import SessionLocal
 from app.models.denuncia import StatusDenuncia
 from app.schemas.denuncia import Denuncia, DenunciaStatusUpdate
-from app.core.deps import get_current_admin, get_current_active_user
+from app.core.deps import get_current_admin
 from app.models.user import User
 from sqlalchemy.orm import Session
 from app.services.denuncia_service import DenunciaService
@@ -33,8 +33,7 @@ def hello_world():
 def criar_denuncia(
     request: Request,
     denuncia: Denuncia,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: Session = Depends(get_db)
 ):
     """
     Registra uma nova denúncia:
@@ -48,7 +47,7 @@ def criar_denuncia(
         result = service.create_denuncia(denuncia)
 
         print(
-            f"denuncia {denuncia.datetime} registrada com sucesso na blockchain por usuário {current_user.username}. tx_hash: {result['tx_hash']}")
+            f"denuncia {denuncia.datetime} registrada com sucesso na blockchain. tx_hash: {result['tx_hash']}")
 
         return result
     except Exception as e:
@@ -61,16 +60,18 @@ def listar_denuncias(
     db: Session = Depends(get_db),
     status: Optional[StatusDenuncia] = None,
     categoria: Optional[str] = None,
+    user_uuid: Optional[str] = None,
     blockchain_offset: Optional[int] = 0,
 ):
     """
-    Retorna todas as denúncias armazenadas no contrato.
+    Retorna todas as denúncias com filtros opcionais.
     Requer privilégios de administrador.
+    Suporta filtro por user_uuid para análise administrativa.
     """
     try:
         service = DenunciaService(db)
         results = service.get_all_denuncias(
-            status, categoria, blockchain_offset)
+            status, categoria, blockchain_offset, user_uuid)
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

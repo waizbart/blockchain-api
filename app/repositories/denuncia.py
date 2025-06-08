@@ -23,6 +23,12 @@ class DenunciaRepository(BaseRepository[Denuncia]):
         """
         return self.db.query(self.model).filter(self.model.categoria == categoria).all()
 
+    def get_by_user_uuid(self, user_uuid: str) -> List[Denuncia]:
+        """
+        Get all denuncias by user_uuid for anonymous user tracking.
+        """
+        return self.db.query(self.model).filter(self.model.user_uuid == user_uuid).all()
+
     def update_status(self, denuncia_id: int, new_status: StatusDenuncia) -> Optional[Denuncia]:
         """
         Update the status of a denuncia by ID.
@@ -36,7 +42,7 @@ class DenunciaRepository(BaseRepository[Denuncia]):
 
     def create_from_schema(self, denuncia: DenunciaSchema, hash_dados: str) -> Denuncia:
         """
-        Create denuncia from schema and hash_dados.
+        Create denuncia from schema and hash_dados, including optional user_uuid.
         """
         nova_denuncia = Denuncia(
             descricao=denuncia.descricao,
@@ -45,7 +51,8 @@ class DenunciaRepository(BaseRepository[Denuncia]):
             longitude=denuncia.longitude,
             hash_dados=hash_dados,
             datetime=denuncia.datetime,
-            status=StatusDenuncia.PENDING  # Always start as PENDING
+            user_uuid=denuncia.user_uuid,
+            status=StatusDenuncia.PENDING
         )
         self.db.add(nova_denuncia)
         self.db.commit()

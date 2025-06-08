@@ -18,5 +18,6 @@ class Denuncia(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     hash_dados = Column(Text, nullable=False)
+    user_uuid = Column(String, nullable=True, index=True)
     status = Column(Enum(StatusDenuncia),
                     default=StatusDenuncia.PENDING, nullable=False)

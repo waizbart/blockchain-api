@@ -9,6 +9,7 @@ class Denuncia(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     datetime: Optional[str] = None
+    user_uuid: Optional[str] = None
 
 
 class DenunciaResponse(BaseModel):
@@ -20,6 +21,7 @@ class DenunciaResponse(BaseModel):
     datetime: Optional[str] = None
     status: StatusDenuncia
     hash_dados: str
+    user_uuid: Optional[str] = None
 
     class Config:
         orm_mode = True
