@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from app.db.config import SessionLocal
-from app.models.denuncia import StatusDenuncia
+from app.models.denuncia import StatusDenuncia, SeveridadeDenuncia
 from app.schemas.denuncia import Denuncia, DenunciaStatusUpdate
 from app.core.deps import get_current_admin
 from app.models.user import User
@@ -61,17 +61,23 @@ def listar_denuncias(
     status: Optional[StatusDenuncia] = None,
     categoria: Optional[str] = None,
     user_uuid: Optional[str] = None,
+    severidade: Optional[SeveridadeDenuncia] = None,
     blockchain_offset: Optional[int] = 0,
 ):
     """
     Retorna todas as denúncias com filtros opcionais.
     Requer privilégios de administrador.
-    Suporta filtro por user_uuid para análise administrativa.
+    Suporta filtros por:
+    - status: Status da denúncia (PENDING, VERIFIED, REJECTED)
+    - categoria: Categoria da denúncia
+    - user_uuid: UUID do usuário para análise administrativa
+    - severidade: Severidade da denúncia (BAIXA, MEDIA, ALTA, CRITICA)
+    - blockchain_offset: Offset para paginação blockchain
     """
     try:
         service = DenunciaService(db)
         results = service.get_all_denuncias(
-            status, categoria, blockchain_offset, user_uuid)
+            status, categoria, blockchain_offset, user_uuid, severidade)
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

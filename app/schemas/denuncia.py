@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from app.models.denuncia import StatusDenuncia
+from app.models.denuncia import StatusDenuncia, SeveridadeDenuncia
 
 
 class Denuncia(BaseModel):
@@ -22,6 +22,7 @@ class DenunciaResponse(BaseModel):
     status: StatusDenuncia
     hash_dados: str
     user_uuid: Optional[str] = None
+    severidade: Optional[SeveridadeDenuncia] = None
 
     class Config:
         orm_mode = True
@@ -29,3 +30,10 @@ class DenunciaResponse(BaseModel):
 
 class DenunciaStatusUpdate(BaseModel):
     status: StatusDenuncia
+
+
+class SeveridadeAnalysis(BaseModel):
+    severidade: SeveridadeDenuncia
+    pontuacao: float
+    fatores: dict
+    justificativa: str

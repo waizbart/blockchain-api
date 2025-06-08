@@ -12,3 +12,4 @@ python-dotenv
 slowapi
 redis
 pydantic[email]
+openai
