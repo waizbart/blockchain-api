@@ -34,9 +34,9 @@ class DenunciaRepository(BaseRepository[Denuncia]):
             self.db.refresh(denuncia)
         return denuncia
 
-    def create_from_schema(self, denuncia: DenunciaSchema, hash_dados: str) -> Denuncia:
+    def create_from_schema(self, denuncia: DenunciaSchema, hash_dados: str, pseudonimo_cluster: Optional[str] = None) -> Denuncia:
         """
-        Create denuncia from schema and hash_dados.
+        Create denuncia from schema, hash_dados and optional anonymous pseudonym.
         """
         nova_denuncia = Denuncia(
             descricao=denuncia.descricao,
@@ -45,9 +45,18 @@ class DenunciaRepository(BaseRepository[Denuncia]):
             longitude=denuncia.longitude,
             hash_dados=hash_dados,
             datetime=denuncia.datetime,
-            status=StatusDenuncia.PENDING  # Always start as PENDING
+            pseudonimo_cluster=pseudonimo_cluster,
+            status=StatusDenuncia.PENDING
         )
         self.db.add(nova_denuncia)
         self.db.commit()
         self.db.refresh(nova_denuncia)
         return nova_denuncia
+
+    def get_by_pseudonym(self, pseudonimo: str) -> List[Denuncia]:
+        """
+        Get all denuncias by anonymous pseudonym.
+        """
+        return self.db.query(self.model).filter(
+            self.model.pseudonimo_cluster == pseudonimo
+        ).all()

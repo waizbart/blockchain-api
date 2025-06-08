@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.repositories.denuncia import DenunciaRepository
 from app.services.blockchain_service import BlockchainService
+from app.services.anonymous_clustering_service import AnonymousClusteringService
 from app.schemas.denuncia import Denuncia as DenunciaSchema
 from app.models.denuncia import StatusDenuncia
 from app.adapters.storage_adapter import StorageAdapter
@@ -27,6 +28,7 @@ class DenunciaService:
         self.repository = DenunciaRepository(db)
         self.blockchain_service = BlockchainService(
             provider_name=blockchain_provider)
+        self.clustering_service = AnonymousClusteringService(db)
         self.storage_adapter: Optional[StorageAdapter] = None
 
         if use_ipfs:
@@ -35,32 +37,31 @@ class DenunciaService:
             except Exception as e:
                 print(f"IPFS not available: {str(e)}")
 
-    def create_denuncia(self, denuncia: DenunciaSchema) -> Dict[str, Any]:
+    def create_denuncia(self, denuncia: DenunciaSchema, user_id: int) -> Dict[str, Any]:
         """
         Create a new denuncia:
-        1. Generate hash from denuncia data
-        2. Register hash on blockchain
-        3. Store denuncia in database
-        4. If IPFS is enabled, store additional data on IPFS
+        1. Generate anonymous pseudonym for clustering
+        2. Generate hash from denuncia data
+        3. Register hash on blockchain
+        4. Store denuncia in database with pseudonym
+        5. If IPFS is enabled, store additional data on IPFS
         """
-        # Convert pydantic model to dict for hash generation
-        denuncia_dict = denuncia.dict()
+        pseudonimo = self.clustering_service.generate_anonymous_pseudonym(
+            user_id)
 
-        # Generate hash
+        denuncia_dict = denuncia.model_dump()
+
         hash_dados = self.blockchain_service.generate_hash(denuncia_dict)
 
-        # Register on blockchain
         tx_hash = self.blockchain_service.register_denuncia(
             hash_dados, denuncia.categoria)
 
-        # Store in database
-        db_denuncia = self.repository.create_from_schema(denuncia, hash_dados)
+        db_denuncia = self.repository.create_from_schema(
+            denuncia, hash_dados, pseudonimo)
 
-        # Store additional data on IPFS if enabled
         ipfs_cid = None
         if self.storage_adapter:
             try:
-                # Add more details that might not fit in the blockchain
                 additional_data = {
                     "id": db_denuncia.id,
                     "descricao": denuncia.descricao,

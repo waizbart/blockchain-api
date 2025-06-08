@@ -1,16 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from app.schemas.auth import UserLogin, UserRegister, Token, UserResponse
 from app.services.auth_service import AuthService
-from app.services.blockchain_service import BlockchainService
-from app.core.deps import get_db, get_auth_service, get_current_admin, get_current_active_user
+from app.core.deps import get_auth_service, get_current_active_user
 from app.models.user import User
 
 router = APIRouter()
-
-
-def get_blockchain_service() -> BlockchainService:
-    return BlockchainService()
 
 
 @router.post("/register", response_model=UserResponse)
@@ -71,34 +65,3 @@ def get_current_user_info(
     Get current user information.
     """
     return UserResponse.from_orm(current_user)
-
-
-@router.get("/admin/status")
-def get_system_status(
-    _: User = Depends(get_current_admin),
-    blockchain_service: BlockchainService = Depends(get_blockchain_service)
-):
-    """
-    Returns the status of the blockchain account, including balance and
-    estimated number of remaining reports.
-    Only accessible by admin users.
-    """
-    try:
-        balance = blockchain_service.get_balance()
-        cost_per_report = blockchain_service.estimate_report_cost()
-
-        if cost_per_report > 0:
-            remaining_reports = int(balance / cost_per_report)
-        else:
-            remaining_reports = float('inf')
-
-        return {
-            "account_balance_matic": balance,
-            "estimated_cost_per_report_matic": cost_per_report,
-            "estimated_remaining_reports": remaining_reports
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}"
-        )
