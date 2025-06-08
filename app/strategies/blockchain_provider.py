@@ -46,7 +46,7 @@ class BlockchainProvider(ABC):
         pass
 
     @abstractmethod
-    def get_all_reports(self) -> List[Tuple[int, str, int, str]]:
+    def get_all_reports(self, blockchain_offset: int = 0) -> List[Tuple[int, str, int, str]]:
         """
         Get all reports from the blockchain.
 

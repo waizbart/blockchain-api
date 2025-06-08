@@ -1,5 +1,12 @@
-from sqlalchemy import Column, Integer, String, Text, Float
+from sqlalchemy import Column, Integer, String, Text, Float, Enum
 from app.db.config import Base
+import enum
+
+
+class StatusDenuncia(enum.Enum):
+    PENDING = "PENDING"
+    VERIFIED = "VERIFIED"
+    REJECTED = "REJECTED"
 
 
 class Denuncia(Base):
@@ -11,3 +18,5 @@ class Denuncia(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     hash_dados = Column(Text, nullable=False)
+    status = Column(Enum(StatusDenuncia),
+                    default=StatusDenuncia.PENDING, nullable=False)

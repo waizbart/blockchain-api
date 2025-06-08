@@ -5,8 +5,10 @@ from sqlalchemy.orm import Session
 from app.repositories.denuncia import DenunciaRepository
 from app.services.blockchain_service import BlockchainService
 from app.schemas.denuncia import Denuncia as DenunciaSchema
+from app.models.denuncia import StatusDenuncia
 from app.adapters.storage_adapter import StorageAdapter
 from app.adapters.ipfs_adapter import IPFSAdapter
+
 
 class DenunciaService:
     """
@@ -67,7 +69,8 @@ class DenunciaService:
                     "longitude": denuncia.longitude,
                     "datetime": str(denuncia.datetime),
                     "hash_dados": hash_dados,
-                    "tx_hash": tx_hash
+                    "tx_hash": tx_hash,
+                    "status": db_denuncia.status.value
                 }
 
                 ipfs_cid = self.storage_adapter.store(additional_data)
@@ -85,19 +88,47 @@ class DenunciaService:
 
         return response
 
-    def get_all_denuncias(self) -> List[Dict[str, Any]]:
+    def update_denuncia_status(self, denuncia_id: int, new_status: StatusDenuncia) -> Optional[Dict[str, Any]]:
+        """
+        Update the status of a denuncia. Only allows certain transitions.
+        """
+        denuncia = self.repository.update_status(denuncia_id, new_status)
+
+        if denuncia:
+            return {
+                "id": denuncia.id,
+                "descricao": denuncia.descricao,
+                "categoria": denuncia.categoria,
+                "latitude": denuncia.latitude,
+                "longitude": denuncia.longitude,
+                "datetime": denuncia.datetime,
+                "status": denuncia.status.value,
+                "hash_dados": denuncia.hash_dados
+            }
+        return None
+
+    def get_all_denuncias(
+        self,
+        status: Optional[StatusDenuncia] = None,
+        categoria: Optional[str] = None,
+        blockchain_offset: Optional[int] = 0
+    ) -> List[Dict[str, Any]]:
         """
         Get all denuncias from blockchain and enrich with database data.
         """
-        # Get all denuncias from blockchain
-        blockchain_denuncias = self.blockchain_service.get_all_denuncias()
+        blockchain_denuncias = self.blockchain_service.get_all_denuncias(blockchain_offset)
 
         results = []
         for denuncia_id, hash_dados, data_hora, categoria in blockchain_denuncias:
-            # Find corresponding database record
             local_denuncia = self.repository.get_by_hash(hash_dados)
 
             if local_denuncia:
+                if status and local_denuncia.status != status:
+                    continue
+
+                if categoria and local_denuncia.categoria.lower() != categoria.lower():
+                    continue
+                
                 results.append({
                     "id": local_denuncia.id,
                     "descricao": local_denuncia.descricao,
@@ -105,6 +136,8 @@ class DenunciaService:
                     "latitude": getattr(local_denuncia, "latitude", None),
                     "longitude": getattr(local_denuncia, "longitude", None),
                     "datetime": local_denuncia.datetime,
+                    "status": local_denuncia.status.value,
+                    "hash_dados": local_denuncia.hash_dados,
                     "blockchain_id": denuncia_id,
                     "blockchain_timestamp": data_hora
                 })
@@ -134,6 +167,8 @@ class DenunciaService:
                     "latitude": getattr(local_denuncia, "latitude", None),
                     "longitude": getattr(local_denuncia, "longitude", None),
                     "datetime": local_denuncia.datetime,
+                    "status": local_denuncia.status.value,
+                    "hash_dados": local_denuncia.hash_dados,
                     "blockchain_id": denuncia_id,
                     "blockchain_timestamp": data_hora
                 }

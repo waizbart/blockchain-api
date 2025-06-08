@@ -42,7 +42,7 @@ class PolygonProvider(BlockchainProvider):
         """
         return contract.functions.obterDenuncia(report_id).call()
 
-    def get_all_reports(self) -> List[Tuple[int, str, int, str]]:
+    def get_all_reports(self, blockchain_offset: int = 0) -> List[Tuple[int, str, int, str]]:
         """
         Get all reports from the Polygon blockchain.
         """
@@ -51,9 +51,7 @@ class PolygonProvider(BlockchainProvider):
 
         print(f"Total de denuncias: {total}")
 
-        START = 0
-
-        for i in range(START, total):
+        for i in range(blockchain_offset, total):
             data = self.get_report(i)
             reports.append((i, data[0], data[1], data[2]))
 
@@ -74,16 +72,16 @@ class PolygonProvider(BlockchainProvider):
         try:
             dummy_hash = "0x" + "0" * 64
             dummy_category = "estimativa"
-            
+
             gas_estimate = contract.functions.registrarDenuncia(dummy_hash, dummy_category).estimate_gas({
                 'from': settings.PUBLIC_ADDRESS
             })
-            
+
             gas_price = w3.eth.gas_price
-            
+
             cost_wei = gas_estimate * gas_price
             cost_matic = w3.from_wei(cost_wei, 'ether')
-            
+
             return float(cost_matic)
         except Exception as e:
             print(f"Error estimating gas: {e}")

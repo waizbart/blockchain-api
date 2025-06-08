@@ -1,6 +1,8 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from app.db.config import SessionLocal
-from app.schemas.denuncia import Denuncia
+from app.models.denuncia import StatusDenuncia
+from app.schemas.denuncia import Denuncia, DenunciaStatusUpdate
 from app.controllers.police import get_current_police, Police
 from sqlalchemy.orm import Session
 from app.services.denuncia_service import DenunciaService
@@ -45,18 +47,51 @@ def criar_denuncia(request: Request, denuncia: Denuncia, db: Session = Depends(g
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/denuncias")
+@router.get("/denuncias") # add route params to filter by status
 def listar_denuncias(
     _: Police = Depends(get_current_police),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    status: Optional[StatusDenuncia] = None,
+    categoria: Optional[str] = None,
+    blockchain_offset: Optional[int] = 0,
 ):
     """
     Retorna todas as denúncias armazenadas no contrato.
     """
     try:
         service = DenunciaService(db)
-        results = service.get_all_denuncias()
+        results = service.get_all_denuncias(status, categoria, blockchain_offset)
         return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/denuncias/{denuncia_id}/status")
+def atualizar_status_denuncia(
+    denuncia_id: int,
+    status_update: DenunciaStatusUpdate,
+    _: Police = Depends(get_current_police),
+    db: Session = Depends(get_db)
+):
+    """
+    Atualiza o status de uma denúncia.
+    Apenas policiais podem alterar o status.
+    """
+    try:
+        service = DenunciaService(db)
+        result = service.update_denuncia_status(
+            denuncia_id, status_update.status)
+
+        if result is None:
+            raise HTTPException(
+                status_code=404, detail="Denúncia não encontrada.")
+
+        return {
+            "message": f"Status da denúncia {denuncia_id} atualizado para {status_update.status.value}",
+            "denuncia": result
+        }
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

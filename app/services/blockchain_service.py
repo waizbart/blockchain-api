@@ -18,7 +18,6 @@ class BlockchainService:
         Args:
             provider_name: The name of the blockchain provider to use.
         """
-        # Use the factory to get the appropriate provider
         self.provider: BlockchainProvider = BlockchainFactory.get_provider(
             provider_name)
 
@@ -56,12 +55,12 @@ class BlockchainService:
         """
         return self.provider.get_report(denuncia_id)
 
-    def get_all_denuncias(self) -> List[Tuple[int, str, int, str]]:
+    def get_all_denuncias(self, blockchain_offset: int = 0) -> List[Tuple[int, str, int, str]]:
         """
         Get all denuncias from the blockchain.
         Returns a list of tuples (id, hashDados, dataHora, categoria).
         """
-        return self.provider.get_all_reports()
+        return self.provider.get_all_reports(blockchain_offset)
 
     def get_balance(self) -> float:
         """
