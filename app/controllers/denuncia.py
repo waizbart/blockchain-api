@@ -47,7 +47,7 @@ def criar_denuncia(request: Request, denuncia: Denuncia, db: Session = Depends(g
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/denuncias") # add route params to filter by status
+@router.get("/denuncias")
 def listar_denuncias(
     _: Police = Depends(get_current_police),
     db: Session = Depends(get_db),
@@ -60,7 +60,8 @@ def listar_denuncias(
     """
     try:
         service = DenunciaService(db)
-        results = service.get_all_denuncias(status, categoria, blockchain_offset)
+        results = service.get_all_denuncias(
+            status, categoria, blockchain_offset)
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

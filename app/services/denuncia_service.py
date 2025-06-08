@@ -116,7 +116,8 @@ class DenunciaService:
         """
         Get all denuncias from blockchain and enrich with database data.
         """
-        blockchain_denuncias = self.blockchain_service.get_all_denuncias(blockchain_offset)
+        blockchain_denuncias = self.blockchain_service.get_all_denuncias(
+            blockchain_offset)
 
         results = []
         for denuncia_id, hash_dados, data_hora, categoria in blockchain_denuncias:
@@ -128,7 +129,7 @@ class DenunciaService:
 
                 if categoria and local_denuncia.categoria.lower() != categoria.lower():
                     continue
-                
+
                 results.append({
                     "id": local_denuncia.id,
                     "descricao": local_denuncia.descricao,
