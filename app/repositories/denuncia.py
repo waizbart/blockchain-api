@@ -40,6 +40,15 @@ class DenunciaRepository(BaseRepository[Denuncia]):
             self.db.refresh(denuncia)
         return denuncia
 
+    def get_all_users_with_denuncias(self) -> List[str]:
+        """
+        Get all unique user_uuids that have denuncias.
+        """
+        result = self.db.query(self.model.user_uuid).filter(
+            self.model.user_uuid.isnot(None)
+        ).distinct().all()
+        return [row[0] for row in result if row[0] is not None]
+
     def create_from_schema(self, denuncia: DenunciaSchema, hash_dados: str) -> Denuncia:
         """
         Create denuncia from schema and hash_dados, including optional user_uuid.
