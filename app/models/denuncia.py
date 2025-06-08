@@ -9,6 +9,13 @@ class StatusDenuncia(enum.Enum):
     REJECTED = "REJECTED"
 
 
+class SeveridadeDenuncia(enum.Enum):
+    BAIXA = "BAIXA"
+    MEDIA = "MEDIA"
+    ALTA = "ALTA"
+    CRITICA = "CRITICA"
+
+
 class Denuncia(Base):
     __tablename__ = "denuncias"
     id = Column(Integer, primary_key=True, index=True)
@@ -21,3 +28,4 @@ class Denuncia(Base):
     user_uuid = Column(String, nullable=True, index=True)
     status = Column(Enum(StatusDenuncia),
                     default=StatusDenuncia.PENDING, nullable=False)
+    severidade = Column(Enum(SeveridadeDenuncia), nullable=True)

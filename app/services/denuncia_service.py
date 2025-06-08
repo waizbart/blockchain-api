@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.repositories.denuncia import DenunciaRepository
 from app.services.blockchain_service import BlockchainService
 from app.schemas.denuncia import Denuncia as DenunciaSchema
-from app.models.denuncia import StatusDenuncia
+from app.models.denuncia import StatusDenuncia, SeveridadeDenuncia
 from app.adapters.storage_adapter import StorageAdapter
 from app.adapters.ipfs_adapter import IPFSAdapter
 
@@ -43,24 +43,26 @@ class DenunciaService:
         3. Store denuncia in database
         4. If IPFS is enabled, store additional data on IPFS
         """
-        # Convert pydantic model to dict for hash generation
         denuncia_dict = denuncia.dict()
-
-        # Generate hash
         hash_dados = self.blockchain_service.generate_hash(denuncia_dict)
-
-        # Register on blockchain
         tx_hash = self.blockchain_service.register_denuncia(
             hash_dados, denuncia.categoria)
-
-        # Store in database
         db_denuncia = self.repository.create_from_schema(denuncia, hash_dados)
 
-        # Store additional data on IPFS if enabled
+        try:
+            from app.services.severity_analysis_service import SeverityAnalysisService
+            severity_service = SeverityAnalysisService(self.repository.db)
+            analysis = severity_service.analyze_severity(db_denuncia)
+
+            db_denuncia.severidade = analysis['severidade']
+            self.repository.db.commit()
+            self.repository.db.refresh(db_denuncia)
+        except Exception as e:
+            print(f"Erro na análise de severidade: {str(e)}")
+
         ipfs_cid = None
         if self.storage_adapter:
             try:
-                # Add more details that might not fit in the blockchain
                 additional_data = {
                     "id": db_denuncia.id,
                     "descricao": denuncia.descricao,
@@ -104,7 +106,8 @@ class DenunciaService:
                 "datetime": denuncia.datetime,
                 "status": denuncia.status.value,
                 "hash_dados": denuncia.hash_dados,
-                "user_uuid": denuncia.user_uuid
+                "user_uuid": denuncia.user_uuid,
+                "severidade": denuncia.severidade.value if denuncia.severidade else None
             }
         return None
 
@@ -113,11 +116,12 @@ class DenunciaService:
         status: Optional[StatusDenuncia] = None,
         categoria: Optional[str] = None,
         blockchain_offset: Optional[int] = 0,
-        user_uuid: Optional[str] = None
+        user_uuid: Optional[str] = None,
+        severidade: Optional[SeveridadeDenuncia] = None
     ) -> List[Dict[str, Any]]:
         """
         Get all denuncias from blockchain and enrich with database data.
-        Supports filtering by status, categoria, and user_uuid.
+        Supports filtering by status, categoria, user_uuid, and severidade.
         """
         blockchain_denuncias = self.blockchain_service.get_all_denuncias(
             blockchain_offset)
@@ -136,6 +140,9 @@ class DenunciaService:
                 if user_uuid and local_denuncia.user_uuid != user_uuid:
                     continue
 
+                if severidade and local_denuncia.severidade != severidade:
+                    continue
+
                 results.append({
                     "id": local_denuncia.id,
                     "descricao": local_denuncia.descricao,
@@ -146,6 +153,7 @@ class DenunciaService:
                     "status": local_denuncia.status.value,
                     "hash_dados": local_denuncia.hash_dados,
                     "user_uuid": getattr(local_denuncia, "user_uuid", None),
+                    "severidade": local_denuncia.severidade.value if local_denuncia.severidade else None,
                     "blockchain_id": denuncia_id,
                     "blockchain_timestamp": data_hora
                 })
@@ -177,6 +185,7 @@ class DenunciaService:
                     "status": local_denuncia.status.value,
                     "hash_dados": local_denuncia.hash_dados,
                     "user_uuid": getattr(local_denuncia, "user_uuid", None),
+                    "severidade": local_denuncia.severidade.value if local_denuncia.severidade else None,
                     "blockchain_id": denuncia_id,
                     "blockchain_timestamp": data_hora
                 }
