@@ -2,6 +2,7 @@ from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from app.controllers.denuncia import router as denuncia_router
 from app.controllers.auth import router as auth_router
+from app.controllers.analysis import router as analysis_router
 from app.db.config import Base, engine
 from app.db.seed import seed_users
 from app.utils.rate_limiter import limiter
@@ -28,6 +29,8 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api/auth", tags=["Autenticação"])
 app.include_router(denuncia_router, prefix="/api", tags=["Denúncias"])
+app.include_router(analysis_router, prefix="/api/analysis",
+                   tags=["Análise de Confiabilidade"])
 
 seed_users()
 
