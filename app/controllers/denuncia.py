@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.db.config import SessionLocal
 from app.models.denuncia import StatusDenuncia
 from app.schemas.denuncia import Denuncia, DenunciaStatusUpdate
-from app.controllers.police import get_current_police, Police
+from app.core.deps import get_current_admin, get_current_active_user
+from app.models.user import User
 from sqlalchemy.orm import Session
 from app.services.denuncia_service import DenunciaService
 from app.utils.rate_limiter import limiter
@@ -29,18 +30,25 @@ def hello_world():
 
 @router.post("/denuncia")
 @limiter.limit("5/minute")
-def criar_denuncia(request: Request, denuncia: Denuncia, db: Session = Depends(get_db)):
+def criar_denuncia(
+    request: Request,
+    denuncia: Denuncia,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
     Registra uma nova denúncia:
     1. Gera um hash dos dados.
     2. Envia o hash na blockchain via registrarDenuncia().
+
+    Requer autenticação de usuário.
     """
     try:
         service = DenunciaService(db)
         result = service.create_denuncia(denuncia)
 
         print(
-            f"denuncia {denuncia.datetime} registrada com sucesso na blockchain. tx_hash: {result['tx_hash']}")
+            f"denuncia {denuncia.datetime} registrada com sucesso na blockchain por usuário {current_user.username}. tx_hash: {result['tx_hash']}")
 
         return result
     except Exception as e:
@@ -49,7 +57,7 @@ def criar_denuncia(request: Request, denuncia: Denuncia, db: Session = Depends(g
 
 @router.get("/denuncias")
 def listar_denuncias(
-    _: Police = Depends(get_current_police),
+    _: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
     status: Optional[StatusDenuncia] = None,
     categoria: Optional[str] = None,
@@ -57,6 +65,7 @@ def listar_denuncias(
 ):
     """
     Retorna todas as denúncias armazenadas no contrato.
+    Requer privilégios de administrador.
     """
     try:
         service = DenunciaService(db)
@@ -71,12 +80,12 @@ def listar_denuncias(
 def atualizar_status_denuncia(
     denuncia_id: int,
     status_update: DenunciaStatusUpdate,
-    _: Police = Depends(get_current_police),
+    _: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Atualiza o status de uma denúncia.
-    Apenas policiais podem alterar o status.
+    Apenas administradores podem alterar o status.
     """
     try:
         service = DenunciaService(db)
@@ -98,9 +107,14 @@ def atualizar_status_denuncia(
 
 
 @router.get("/denuncias/{denuncia_id}")
-def obter_denuncia_por_id(denuncia_id: int, db: Session = Depends(get_db)):
+def obter_denuncia_por_id(
+    denuncia_id: int,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_admin)
+):
     """
     Retorna uma denúncia específica pelo ID salvo na blockchain.
+    Requer privilégios de administrador.
     """
     try:
         service = DenunciaService(db)

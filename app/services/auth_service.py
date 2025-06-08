@@ -2,9 +2,10 @@ from typing import Optional, Dict, Any
 
 from sqlalchemy.orm import Session
 
-from app.repositories.police import PoliceRepository
-from app.controllers.police import Police
-from app.services.token_service import TokenService  # Import TokenService
+from app.repositories.user import UserRepository
+from app.models.user import User, UserRole
+from app.services.token_service import TokenService
+from app.schemas.auth import UserRegister
 
 
 class AuthService:
@@ -19,14 +20,32 @@ class AuthService:
         algorithm: str = "HS256",
         token_expire_minutes: int = 30
     ):
-        self.repository = PoliceRepository(db)
-        self.token_service = TokenService(secret_key, algorithm, token_expire_minutes)
+        self.repository = UserRepository(db)
+        self.token_service = TokenService(
+            secret_key, algorithm, token_expire_minutes)
 
-    def authenticate_user(self, username: str, password: str) -> Optional[Police]:
+    def authenticate_user(self, username: str, password: str) -> Optional[User]:
         """
         Authenticate a user with username and password.
         """
         return self.repository.authenticate(username, password)
+
+    def register_user(self, user_data: UserRegister) -> User:
+        """
+        Register a new user.
+        """
+        if self.repository.get_by_username(user_data.username):
+            raise ValueError("Username already exists")
+
+        if user_data.email and self.repository.get_by_email(user_data.email):
+            raise ValueError("Email already exists")
+
+        return self.repository.create_user(
+            username=user_data.username,
+            password=user_data.password,
+            email=user_data.email,
+            role=UserRole.USER
+        )
 
     def create_access_token(self, data: Dict[str, Any]) -> str:
         """
@@ -40,7 +59,7 @@ class AuthService:
         """
         return self.token_service.decode_token(token)
 
-    def get_current_user(self, token: str) -> Optional[Police]:
+    def get_current_user(self, token: str) -> Optional[User]:
         """
         Get the current user from a token.
         """
